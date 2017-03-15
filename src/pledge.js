@@ -8,7 +8,7 @@ function $Promise(executor) {
     // promise =  new $Promise();
     this._value;
     this._state = 'pending';
-    this._handlers = [];
+    this._handlerGroups = [];
     if (executor) {
         executor(this._internalResolve.bind(this),this._internalReject.bind(this));
     }
@@ -19,17 +19,44 @@ $Promise.prototype._internalResolve = function(data) {
     if (this._state !== 'pending') return;
     this._value = data;
     this._state = 'fulfilled';
-    this._handlers.forEach(handler => handler(data))
+
+    this._callHandlers();
 }
 
 $Promise.prototype._internalReject = function(err) {
     if (this._state !== 'pending') return;
     this._value = err;
     this._state = 'rejected';
-    //this._handlers?
 }
 
+$Promise.prototype.then = function(successCb, errorCb) {
+    var obj = {};
+    if(typeof successCb !== 'function') {
+        obj.successCb = null;
+    } else {
+        obj.successCb = successCb;
+    }
+    if(typeof errorCb !== 'function') {
+        obj.errorCb = null;
+    } else {
+        obj.errorCb = errorCb;
+    }
 
+    this._handlerGroups.push(obj);
+    //console.log("this._handlerGroups: ", this._handlerGroups);
+    if(this._state !== 'pending') {
+        this._callHandlers();
+    }
+
+}
+
+$Promise.prototype._callHandlers = function() {
+    // console.log("this._handlerGroups: ", this._handlerGroups);
+    // console.log("this._value:", this._value)
+    console.log("this._state in _callHandlers: ", this._state)
+    this._handlerGroups.forEach(handler => handler.successCb(this._value));
+    this._handlerGroups = [];
+}
 
 /*-------------------------------------------------------
 The spec was designed to work with Test'Em, so we don't
