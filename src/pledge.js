@@ -42,12 +42,15 @@ $Promise.prototype.then = function(successCb, errorCb) {
         obj.errorCb = errorCb;
     }
 
+    obj.downstreamPromise = new $Promise();
+
     this._handlerGroups.push(obj);
     //console.log("this._handlerGroups: ", this._handlerGroups);
+    console.log(this._state)
     if(this._state !== 'pending') {
         this._callHandlers();
     }
-
+    return obj.downstreamPromise;
 }
 
 $Promise.prototype.catch = function(func) {
@@ -65,6 +68,7 @@ $Promise.prototype._callHandlers = function() {
         })
     }
     this._handlerGroups = [];
+    return;
 }
 
 /*-------------------------------------------------------
